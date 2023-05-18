@@ -39,4 +39,16 @@ model User {
   image         String?
   accounts      Account[]
   createdDateTime DateTime @default(now())
+
+  webhookEndpointId String? /// @encrypted
+  webhookEndpointSecret String? /// @encrypted
+  splits Split[]
+}
+
+model Split {
+  id String @id @default(cuid())
+  userId String 
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipientLightningAddress String
+  percentage Int
 }

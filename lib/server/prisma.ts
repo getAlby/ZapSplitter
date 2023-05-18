@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { fieldEncryptionMiddleware } from "prisma-field-encryption";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -10,6 +11,6 @@ if (process.env.NODE_ENV !== "production") globalThis.prisma = prismaClient;
 
 function createPrismaClient() {
   const client = new PrismaClient();
-  // add middleware here
+  client.$use(fieldEncryptionMiddleware());
   return client;
 }

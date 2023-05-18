@@ -27,7 +27,7 @@ export const albyProvider: Provider = {
   authorization: {
     url: `${albyProviderConfig.origin}/oauth`,
     params: {
-      scope: "account:read invoices:read",
+      scope: "account:read invoices:read payments:send",
     },
   },
   token: `${albyProviderConfig.apiUrl}/oauth/token`,
