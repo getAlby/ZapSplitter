@@ -20,13 +20,25 @@ export default async function RootLayout({
           <Toaster position="bottom-center" />
           {children}
         </div>
-        <div className="flex gap-2 items-center justify-center mt-6 mb-10">
+        <div className="flex flex-col gap-2 items-center justify-center mt-6 mb-10">
           <Link href="https://getalby.com" target="_blank">
             <div className="flex gap-2 items-center justify-center">
               <span className="font-body text-xs">Powered by</span>
               <AlbyLogo className="text-primary" />
             </div>
           </Link>
+          <Link
+            href="https://dergigi.com/2023/03/12/lightning-prisms/"
+            target="_blank"
+          >
+            <span className="text-xs link">
+              Original idea and cover image by dergigi.
+            </span>
+          </Link>
+          <span className="text-xs">
+            This is a custodial prototype. Stay tuned for a non-custodial
+            version powered by NWC.
+          </span>
         </div>
       </body>
     </html>
