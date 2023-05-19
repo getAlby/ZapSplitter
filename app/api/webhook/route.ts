@@ -7,6 +7,7 @@ import { logger } from "lib/server/logger";
 import { prismaClient } from "lib/server/prisma";
 import { NextRequest } from "next/server";
 import { Webhook } from "svix";
+import { Invoice } from "types/TempTypes";
 export async function POST(request: NextRequest) {
   const userId: string | null = request.nextUrl.searchParams.get("userId");
   try {
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest) {
       throw new Error("User has no webhook endpoint secret");
     }
 
-    let invoice: types.Invoice;
+    let invoice: Invoice;
     if (process.env.VERIFY_WEBHOOK === "false") {
       invoice = await request.json();
     } else {
@@ -46,7 +47,7 @@ export async function POST(request: NextRequest) {
       }
 
       const wh = new Webhook(user.webhookEndpointSecret);
-      invoice = wh.verify(await request.text(), headers) as types.Invoice;
+      invoice = wh.verify(await request.text(), headers) as Invoice;
     }
 
     // TODO: prevent "infinite" loops A=>A=>A or A=>B=>A

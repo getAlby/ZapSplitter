@@ -2,6 +2,7 @@ import { types } from "alby-js-sdk";
 import { createAlbyClient } from "lib/server/createAlbyClient";
 import { logger } from "lib/server/logger";
 import { prismaClient } from "lib/server/prisma";
+import { CreateWebhookEndpointResponse } from "types/TempTypes";
 
 export async function createWebhook(userId: string) {
   const webhookUrl = process.env.WEBHOOK_URL;
@@ -23,10 +24,11 @@ export async function createWebhook(userId: string) {
   }
   const client = await createAlbyClient(userId);
 
-  const result: types.CreateWebhookEndpointResponse =
+  // TODO: re-add description
+  const result: CreateWebhookEndpointResponse =
     await client.createWebhookEndpoint({
       url: `${webhookUrl}?userId=${userId}`,
-      description: "",
+      // description: "",
       filter_types: ["invoice.incoming.settled"],
     });
   console.log("Created webhook", result.url);
