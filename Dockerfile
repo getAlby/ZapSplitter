@@ -19,15 +19,19 @@ ENV NEXT_TELEMETRY_DISABLED 1
 #RUN yarn build
 
 RUN --mount=type=secret,id=DATABASE_URL \
+    --mount=type=secret,id=PRISMA_FIELD_ENCRYPTION_KEY \
     DATABASE_URL="$(cat /run/secrets/DATABASE_URL)" \
+    PRISMA_FIELD_ENCRYPTION_KEY="$(cat /run/secrets/PRISMA_FIELD_ENCRYPTION_KEY)" \
     yarn db:migrate:deploy
 
 # Add `ARG` instructions below if you need `NEXT_PUBLIC_` variables
 
 RUN --mount=type=secret,id=DATABASE_URL \
+    --mount=type=secret,id=PRISMA_FIELD_ENCRYPTION_KEY \
     #--mount=type=secret,id=SENTRY_AUTH_TOKEN \
     #--mount=type=secret,id=SENTRY_DSN \
     DATABASE_URL="$(cat /run/secrets/DATABASE_URL)" \
+    PRISMA_FIELD_ENCRYPTION_KEY="$(cat /run/secrets/PRISMA_FIELD_ENCRYPTION_KEY)" \
     #SENTRY_AUTH_TOKEN="$(cat /run/secrets/SENTRY_AUTH_TOKEN)" \
     #SENTRY_DSN="$(cat /run/secrets/SENTRY_DSN)" \
     #NEXT_PUBLIC_SENTRY_DSN="$(cat /run/secrets/SENTRY_DSN)" \
