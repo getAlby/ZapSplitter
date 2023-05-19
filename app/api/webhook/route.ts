@@ -52,32 +52,41 @@ export async function POST(request: NextRequest) {
 
     // TODO: prevent "infinite" loops A=>A=>A or A=>B=>A
 
-    /*const payment = await prismaClient.incomingPayment.create({
-        data: {
-          userId,
-          invoice.
-        }
-      })*/
+    const incomingPayment = await prismaClient.incomingPayment.create({
+      data: {
+        userId,
+        paymentHash: invoice.payment_hash,
+        amount: invoice.amount,
+      },
+    });
     const client = await createAlbyClient(user.id);
 
     for (const split of user.splits) {
-      try {
-        const splitAmount = Math.floor(
-          invoice.amount * (split.percentage / 100)
-        );
-        const fee = split.recipientLightningAddress.endsWith("@alby.com")
-          ? 0
-          : Math.ceil(splitAmount / 100);
-        const amountMinusFee = splitAmount - fee;
-        if (amountMinusFee < 1) {
-          logger.info("Skipped split payment (amount too small)", {
-            userId,
-            splitId: split.id,
-            splitAmount,
-          });
-          continue;
-        }
+      const splitAmount = Math.floor(invoice.amount * (split.percentage / 100));
+      const fee = split.recipientLightningAddress.endsWith("@alby.com")
+        ? 0
+        : Math.ceil(splitAmount / 100);
+      const amountMinusFee = splitAmount - fee;
+      const skip = amountMinusFee < 1;
 
+      const outgoingPayment = await prismaClient.outgoingPayment.create({
+        data: {
+          incomingPaymentId: incomingPayment.id,
+          amount: amountMinusFee,
+          splitId: split.id,
+          status: skip ? "SKIPPED" : "PENDING",
+        },
+      });
+      if (skip) {
+        logger.info("Skipped split payment (amount too small)", {
+          userId,
+          splitId: split.id,
+          splitAmount,
+        });
+        continue;
+      }
+
+      try {
         const lightningAddress = new LightningAddress(
           split.recipientLightningAddress
         );
@@ -89,18 +98,57 @@ export async function POST(request: NextRequest) {
             zapSplitterPaymentId: "TODO",
           },
         });
+
+        await prismaClient.outgoingPayment.update({
+          where: {
+            id: outgoingPayment.id,
+          },
+          data: {
+            paymentRequest: splitInvoice.paymentRequest,
+          },
+        });
+
         const result = await client.sendPayment({
           invoice: splitInvoice.paymentRequest,
         });
-        // console.log("Payment result: ", result);
-        logger.info("Successfully sent split payment", {
-          userId,
-          recipientLightningAddress: split.recipientLightningAddress,
-          amountMinusFee,
-        });
+
+        if (result.payment_preimage) {
+          await prismaClient.outgoingPayment.update({
+            where: {
+              id: outgoingPayment.id,
+            },
+            data: {
+              status: "PAID",
+              preimage: result.payment_preimage,
+              paymentHash: result.payment_hash,
+              fee: result.fee,
+            },
+          });
+
+          // console.log("Payment result: ", result);
+          logger.info("Successfully sent split payment", {
+            userId,
+            recipientLightningAddress: split.recipientLightningAddress,
+            amountMinusFee,
+          });
+        } else {
+          throw new Error("No preimage in payment result");
+        }
       } catch (error) {
         captureException(error);
-        logger.error("Failed to send split payment", { error, userId });
+        logger.error("Failed to send split payment", {
+          error,
+          userId,
+          splitId: split.id,
+        });
+        await prismaClient.outgoingPayment.update({
+          where: {
+            id: outgoingPayment.id,
+          },
+          data: {
+            status: "FAILED",
+          },
+        });
       }
     }
 

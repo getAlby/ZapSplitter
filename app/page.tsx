@@ -7,6 +7,7 @@ import { prismaClient } from "lib/server/prisma";
 import { SplitsForm } from "app/components/SplitsForm";
 import { Header } from "app/components/Header";
 import { Box } from "app/components/Box";
+import { PaymentHistory } from "app/components/PaymentHistory";
 
 export const dynamic = "force-dynamic";
 export default async function HomePage() {
@@ -19,6 +20,11 @@ export default async function HomePage() {
       },
       include: {
         splits: true,
+        incomingPayments: {
+          include: {
+            outgoingPayments: true,
+          },
+        },
       },
     }));
 
@@ -29,11 +35,17 @@ export default async function HomePage() {
         {session ? (
           <>
             {user && (
-              <SplitsForm
-                userId={session.user.id}
-                splits={user.splits || []}
-                isEnabled={!!user.webhookEndpointId}
-              />
+              <>
+                <SplitsForm
+                  userId={session.user.id}
+                  splits={user.splits || []}
+                  isEnabled={!!user.webhookEndpointId}
+                />
+                <PaymentHistory
+                  incomingPayments={user.incomingPayments}
+                  splits={user.splits}
+                />
+              </>
             )}
           </>
         ) : (

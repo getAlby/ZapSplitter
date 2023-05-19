@@ -43,6 +43,7 @@ model User {
   webhookEndpointId String? /// @encrypted
   webhookEndpointSecret String? /// @encrypted
   splits Split[]
+  incomingPayments IncomingPayment[]
 }
 
 model Split {
@@ -51,4 +52,37 @@ model Split {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   recipientLightningAddress String
   percentage Int
+  outgoingPayments OutgoingPayment[]
+}
+
+model IncomingPayment {
+  id String @id @default(cuid())
+  userId String 
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  paymentHash String
+  outgoingPayments OutgoingPayment[]
+  createdDateTime DateTime @default(now())
+  amount Int
+}
+
+model OutgoingPayment {
+  id String @id @default(cuid())
+  incomingPaymentId String 
+  incomingPayment IncomingPayment @relation(fields: [incomingPaymentId], references: [id], onDelete: Cascade)
+  splitId String 
+  split Split @relation(fields: [splitId], references: [id], onDelete: Cascade)
+  createdDateTime DateTime @default(now())
+  amount Int
+  fee Int?
+  status OutgoingPaymentStatus
+  paymentHash String?
+  preimage String?
+  paymentRequest String?
+}
+
+enum OutgoingPaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  SKIPPED
 }
