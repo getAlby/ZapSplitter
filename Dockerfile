@@ -25,12 +25,12 @@ RUN --mount=type=secret,id=DATABASE_URL \
 # Add `ARG` instructions below if you need `NEXT_PUBLIC_` variables
 
 RUN --mount=type=secret,id=DATABASE_URL \
-    --mount=type=secret,id=SENTRY_AUTH_TOKEN \
-    --mount=type=secret,id=SENTRY_DSN \
+    #--mount=type=secret,id=SENTRY_AUTH_TOKEN \
+    #--mount=type=secret,id=SENTRY_DSN \
     DATABASE_URL="$(cat /run/secrets/DATABASE_URL)" \
-    SENTRY_AUTH_TOKEN="$(cat /run/secrets/SENTRY_AUTH_TOKEN)" \
-    SENTRY_DSN="$(cat /run/secrets/SENTRY_DSN)" \
-    NEXT_PUBLIC_SENTRY_DSN="$(cat /run/secrets/SENTRY_DSN)" \
+    #SENTRY_AUTH_TOKEN="$(cat /run/secrets/SENTRY_AUTH_TOKEN)" \
+    #SENTRY_DSN="$(cat /run/secrets/SENTRY_DSN)" \
+    #NEXT_PUBLIC_SENTRY_DSN="$(cat /run/secrets/SENTRY_DSN)" \
     yarn build
 
 # If using npm comment out above and use below instead
