@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
         const result = await client.sendPayment({
           invoice: splitInvoice.paymentRequest,
         });
-        console.log("Payment result: ", result);
+        // console.log("Payment result: ", result);
         logger.info("Successfully sent split payment", {
           userId,
           recipientLightningAddress: split.recipientLightningAddress,

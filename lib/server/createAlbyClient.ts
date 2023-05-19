@@ -44,7 +44,7 @@ export async function createAlbyClient(userId: string) {
         expires_at: Math.floor(token.token.expires_at / 1000),
       },
     });
-    console.log("Updated access token");
+    // console.log("Updated access token");
     accessToken = token.token.access_token as string;
   }
 

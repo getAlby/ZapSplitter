@@ -24,7 +24,7 @@ export async function deleteWebhook(userId: string) {
 
   const result = await client.deleteWebhookEndpoint(user.webhookEndpointId);
   if (result.url) {
-    console.log("Deleted webhook", result.url);
+    // console.log("Deleted webhook", result.url);
     await prismaClient.user.update({
       where: {
         id: userId,

@@ -49,7 +49,7 @@ export async function PUT(
         status: StatusCodes.NOT_FOUND,
       });
     }
-    console.log("Saving splits", params.userId, session.user.id);
+    // console.log("Saving splits", params.userId, session.user.id);
     if (params.userId !== session?.user.id) {
       return new Response(undefined, {
         status: StatusCodes.FORBIDDEN,

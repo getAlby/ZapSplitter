@@ -31,7 +31,7 @@ export async function createWebhook(userId: string) {
       // description: "",
       filter_types: ["invoice.incoming.settled"],
     });
-  console.log("Created webhook", result.url);
+  // console.log("Created webhook", result.url);
   await prismaClient.user.update({
     where: {
       id: userId,
