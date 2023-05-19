@@ -11,22 +11,30 @@ import { Box } from "app/components/Box";
 export const dynamic = "force-dynamic";
 export default async function HomePage() {
   const session = await getServerSession(authOptions);
-  const splits =
+  const user =
     session &&
-    (await prismaClient.split.findMany({
+    (await prismaClient.user.findUnique({
       where: {
-        userId: session.user.id,
+        id: session.user.id,
+      },
+      include: {
+        splits: true,
       },
     }));
 
   return (
     <>
-      <Header minimal={false} />
-      <div className="flex gap-4 flex-col items-center justify-center">
+      <Header user={session?.user} />
+      <div className="flex gap-4 flex-col items-center justify-center w-full">
         {session ? (
           <>
-            <SplitsForm userId={session.user.id} splits={splits || []} />
-            <LogoutButton />
+            {user && (
+              <SplitsForm
+                userId={session.user.id}
+                splits={user.splits || []}
+                isEnabled={!!user.webhookEndpointId}
+              />
+            )}
           </>
         ) : (
           <>

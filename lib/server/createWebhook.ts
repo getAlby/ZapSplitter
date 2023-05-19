@@ -1,8 +1,14 @@
-import { Client, types } from "alby-js-sdk";
+import { types } from "alby-js-sdk";
+import { createAlbyClient } from "lib/server/createAlbyClient";
 import { logger } from "lib/server/logger";
 import { prismaClient } from "lib/server/prisma";
 
-export async function createWebhook(userId: string, accessToken: string) {
+export async function createWebhook(userId: string) {
+  const webhookUrl = process.env.WEBHOOK_URL;
+  if (!webhookUrl) {
+    throw new Error("No WEBHOOK_URL set in env");
+  }
+
   const user = await prismaClient.user.findUnique({
     where: {
       id: userId,
@@ -15,22 +21,15 @@ export async function createWebhook(userId: string, accessToken: string) {
     logger.info("User already has webhook", { userId });
     return;
   }
+  const client = await createAlbyClient(userId);
 
-  const webhookUrl = process.env.WEBHOOK_URL;
-  if (!webhookUrl) {
-    throw new Error("No WEBHOOK_URL set in env");
-  }
-
-  const client = new Client(accessToken, {
-    base_url: "https://api.getalby.com",
-  });
   const result: types.CreateWebhookEndpointResponse =
     await client.createWebhookEndpoint({
       url: `${webhookUrl}?userId=${userId}`,
       description: "",
       filter_types: ["invoice.incoming.settled"],
     });
-  console.log("Created webhook", result);
+  console.log("Created webhook", result.url);
   await prismaClient.user.update({
     where: {
       id: userId,

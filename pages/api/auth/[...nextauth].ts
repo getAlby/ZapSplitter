@@ -36,7 +36,6 @@ export const authOptions: AuthOptions = {
             expires_at: account.expires_at,
           },
         });
-        await createWebhook(user.id, account.access_token);
       }
 
       return token;

@@ -3,4 +3,5 @@ import { NewSplit } from "types/NewSplit";
 
 export type SplitsFormData = {
   splits: (Split | NewSplit)[];
+  isEnabled: boolean;
 };

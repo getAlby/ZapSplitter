@@ -2,6 +2,7 @@ import { captureException } from "@sentry/nextjs";
 import { Client, auth, types } from "alby-js-sdk";
 import { LightningAddress } from "alby-tools";
 import { StatusCodes } from "http-status-codes";
+import { createAlbyClient } from "lib/server/createAlbyClient";
 import { logger } from "lib/server/logger";
 import { prismaClient } from "lib/server/prisma";
 import { NextRequest } from "next/server";
@@ -17,7 +18,6 @@ export async function POST(request: NextRequest) {
         id: userId,
       },
       include: {
-        accounts: true,
         splits: true,
       },
     });
@@ -49,53 +49,24 @@ export async function POST(request: NextRequest) {
       invoice = wh.verify(await request.text(), headers) as types.Invoice;
     }
 
-    if (invoice.amount > 1) {
-      let accessToken = user.accounts[0].access_token as string;
-      const expiresAt = user.accounts[0].expires_at as number;
-      if (
-        expiresAt <= Math.floor(Date.now() / 1000) + 1 ||
-        process.env.FORCE_NEW_ACCESS_TOKEN === "true"
-      ) {
-        const authClient = new auth.OAuth2User({
-          client_id: process.env.ALBY_OAUTH_CLIENT_ID!,
-          client_secret: process.env.ALBY_OAUTH_CLIENT_SECRET,
-          callback: "unused",
-          scopes: [],
-          token: {
-            refresh_token: user.accounts[0].refresh_token as string,
-          },
-        } as auth.OAuth2UserOptions);
-        const token = await authClient.refreshAccessToken();
-        if (
-          !token.token.access_token ||
-          !token.token.refresh_token ||
-          !token.token.expires_at
-        ) {
-          throw new Error("Failed to refresh access token");
+    // TODO: prevent "infinite" loops A=>A=>A or A=>B=>A
+
+    /*const payment = await prismaClient.incomingPayment.create({
+        data: {
+          userId,
+          invoice.
         }
-        await prismaClient.account.update({
-          where: {
-            id: user.accounts[0].id,
-          },
-          data: {
-            access_token: token.token.access_token,
-            refresh_token: token.token.refresh_token,
-            expires_at: Math.floor(token.token.expires_at / 1000),
-          },
-        });
-        console.log("Updated access token");
-        accessToken = token.token.access_token as string;
-      }
+      })*/
+    const client = await createAlbyClient(user.id);
 
-      const client = new Client(accessToken, {
-        base_url: "https://api.getalby.com",
-      });
-
-      for (const split of user.splits) {
+    for (const split of user.splits) {
+      try {
         const splitAmount = Math.floor(
           invoice.amount * (split.percentage / 100)
         );
-        const fee = Math.ceil(splitAmount / 100);
+        const fee = split.recipientLightningAddress.endsWith("@alby.com")
+          ? 0
+          : Math.ceil(splitAmount / 100);
         const amountMinusFee = splitAmount - fee;
         if (amountMinusFee < 1) {
           logger.info("Skipped split payment (amount too small)", {
@@ -113,15 +84,22 @@ export async function POST(request: NextRequest) {
         const splitInvoice = await lightningAddress.requestInvoice({
           satoshi: amountMinusFee,
           comment: "ZapSplitter sats",
+          payerdata: {
+            zapSplitterPaymentId: "TODO",
+          },
         });
         const result = await client.sendPayment({
           invoice: splitInvoice.paymentRequest,
         });
         console.log("Payment result: ", result);
-        logger.info("Sent split to", {
+        logger.info("Successfully sent split payment", {
+          userId,
           recipientLightningAddress: split.recipientLightningAddress,
           amountMinusFee,
         });
+      } catch (error) {
+        captureException(error);
+        logger.error("Failed to send split payment", { error, userId });
       }
     }
 
