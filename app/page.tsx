@@ -63,23 +63,28 @@ export default async function HomePage() {
                   Incoming payments will be forwarded to your configured splits,
                   with 1% reserved per split for fees
                 </li>
-                <li className="list-item">
-                  Only split payments of at least 1 sat will be sent following
-                  this algorithm:{" "}
-                  <span className="font-mono">
-                    (incomingAmount / splitPercent) - 1%
-                  </span>
-                </li>
-                <li className="list-item">
-                  You move any unspent sats at any time to a separate account
-                </li>
-                <li className="list-item">
-                  Payments to other Alby lightning addresses are free
-                </li>
-                <li className="list-item">
-                  Disable split payments any time with one click
-                </li>
+                <li className="list-item">Disable split payments any time</li>
               </ul>
+              <div>
+                <h3 className="font-heading font-bold text-lg mb-2">
+                  Skipped Payments
+                </h3>
+                <p>
+                  Payments will only be made if at least 2 sats are available to
+                  make the payment
+                </p>
+              </div>
+              <div>
+                <h3 className="font-heading font-bold text-lg mb-2">
+                  Unspent Routing Fees
+                </h3>
+                <p>
+                  Unspent routing fees will stay in your account, and you can
+                  use them at any time, or wait for them to collect and then
+                  resend the sats to yourself, re-triggering a new split
+                  payment.
+                </p>
+              </div>
             </Box>
             <div />
             <LoginButton />
