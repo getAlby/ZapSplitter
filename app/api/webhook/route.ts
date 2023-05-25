@@ -63,9 +63,7 @@ export async function POST(request: NextRequest) {
 
     for (const split of user.splits) {
       const splitAmount = Math.floor(invoice.amount * (split.percentage / 100));
-      const fee = split.recipientLightningAddress.endsWith("@alby.com")
-        ? 0
-        : Math.ceil(splitAmount / 100);
+      const fee = Math.ceil(splitAmount / 100);
       const amountMinusFee = splitAmount - fee;
       const skip = amountMinusFee < 1;
 
