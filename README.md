@@ -1,6 +1,6 @@
 # ZapSplitter
 
-Forward incoming payments to multiple lightning addresses
+Forward incoming payments to multiple lightning addresses powered by the Alby [Wallet API](https://guides.getalby.com/alby-wallet-api/reference/getting-started)
 
 Try it here: (coming soon)
 
