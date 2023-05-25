@@ -5,6 +5,7 @@ import { StatusCodes } from "http-status-codes";
 import { createAlbyClient } from "lib/server/createAlbyClient";
 import { logger } from "lib/server/logger";
 import { prismaClient } from "lib/server/prisma";
+import { getSplitAmount, getSplitAmountWithoutFee } from "lib/utils";
 import { NextRequest } from "next/server";
 import { Webhook } from "svix";
 import { Invoice } from "types/TempTypes";
@@ -62,9 +63,11 @@ export async function POST(request: NextRequest) {
     const client = await createAlbyClient(user.id);
 
     for (const split of user.splits) {
-      const splitAmount = Math.floor(invoice.amount * (split.percentage / 100));
-      const fee = Math.ceil(splitAmount / 100);
-      const amountMinusFee = splitAmount - fee;
+      const splitAmount = getSplitAmount(invoice.amount, split.percentage);
+      const amountMinusFee = getSplitAmountWithoutFee(
+        invoice.amount,
+        split.percentage
+      );
       const skip = amountMinusFee < 1;
 
       const outgoingPayment = await prismaClient.outgoingPayment.create({

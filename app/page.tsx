@@ -24,6 +24,9 @@ export default async function HomePage() {
           include: {
             outgoingPayments: true,
           },
+          orderBy: {
+            createdDateTime: "desc",
+          },
         },
       },
     }));
