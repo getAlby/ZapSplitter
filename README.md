@@ -2,7 +2,7 @@
 
 Forward incoming payments to multiple lightning addresses powered by the Alby [Wallet API](https://guides.getalby.com/alby-wallet-api/reference/getting-started)
 
-Try it here: (coming soon)
+> ⚠️ Alby Deployment at https://zapsplitter.fly.dev/ is no longer available due to lack of resources to maintain this project. Feel free to run it on your own if you find it valuable. This app was created as a proof of concept for lightning prisms using Alby webhooks.
 
 ## Installation
 
